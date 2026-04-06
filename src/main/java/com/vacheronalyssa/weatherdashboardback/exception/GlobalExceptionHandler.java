@@ -9,6 +9,8 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestClientResponseException;
 
 import java.time.Instant;
 import java.util.LinkedHashMap;
@@ -51,6 +53,24 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<ApiErrorResponse> handleIllegalState(IllegalStateException ex, HttpServletRequest request) {
         return build(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage(), request.getRequestURI(), Map.of());
+    }
+
+    @ExceptionHandler(RestClientResponseException.class)
+    public ResponseEntity<ApiErrorResponse> handleRestClientResponseException(
+            RestClientResponseException ex,
+            HttpServletRequest request
+    ) {
+        HttpStatus status = HttpStatus.BAD_GATEWAY;
+        if (ex.getStatusCode().is4xxClientError()) {
+            status = HttpStatus.SERVICE_UNAVAILABLE;
+        }
+
+        return build(status, "Service meteo indisponible pour le moment", request.getRequestURI(), Map.of());
+    }
+
+    @ExceptionHandler(ResourceAccessException.class)
+    public ResponseEntity<ApiErrorResponse> handleResourceAccessException(ResourceAccessException ex, HttpServletRequest request) {
+        return build(HttpStatus.SERVICE_UNAVAILABLE, "Service meteo indisponible pour le moment", request.getRequestURI(), Map.of());
     }
 
     @ExceptionHandler(Exception.class)
