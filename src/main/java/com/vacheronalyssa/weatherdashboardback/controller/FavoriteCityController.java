@@ -3,9 +3,11 @@ package com.vacheronalyssa.weatherdashboardback.controller;
 import com.vacheronalyssa.weatherdashboardback.dto.favorite.FavoriteCityRequestDto;
 import com.vacheronalyssa.weatherdashboardback.dto.favorite.FavoriteCityResponseDto;
 import com.vacheronalyssa.weatherdashboardback.entity.FavoriteCity;
+import com.vacheronalyssa.weatherdashboardback.exception.ResourceNotFoundException;
 import com.vacheronalyssa.weatherdashboardback.mapper.FavoriteCityMapper;
 import com.vacheronalyssa.weatherdashboardback.service.FavoriteCityService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,7 +32,7 @@ public class FavoriteCityController {
     private final FavoriteCityService favoriteCityService;
 
     @GetMapping
-    public ResponseEntity<List<FavoriteCityResponseDto>> list(@PathVariable Long userId) {
+    public ResponseEntity<List<FavoriteCityResponseDto>> list(@PathVariable @Positive Long userId) {
         return ResponseEntity.ok(
                 favoriteCityService.listFavoriteCities(userId)
                         .stream()
@@ -41,18 +43,18 @@ public class FavoriteCityController {
 
     @GetMapping("/{favoriteCityId}")
     public ResponseEntity<FavoriteCityResponseDto> get(
-            @PathVariable Long userId,
-            @PathVariable Long favoriteCityId
+            @PathVariable @Positive Long userId,
+            @PathVariable @Positive Long favoriteCityId
     ) {
         return favoriteCityService.getFavoriteCity(userId, favoriteCityId)
                 .map(FavoriteCityMapper::toResponseDto)
                 .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+            .orElseThrow(() -> new ResourceNotFoundException("Ville favorite introuvable"));
     }
 
     @PostMapping
     public ResponseEntity<FavoriteCityResponseDto> create(
-            @PathVariable Long userId,
+            @PathVariable @Positive Long userId,
             @Valid @RequestBody FavoriteCityRequestDto request
     ) {
         FavoriteCity created = favoriteCityService.addFavoriteCity(userId, request.nomVille());
@@ -61,24 +63,24 @@ public class FavoriteCityController {
 
     @PutMapping("/{favoriteCityId}")
     public ResponseEntity<FavoriteCityResponseDto> update(
-            @PathVariable Long userId,
-            @PathVariable Long favoriteCityId,
+            @PathVariable @Positive Long userId,
+            @PathVariable @Positive Long favoriteCityId,
             @Valid @RequestBody FavoriteCityRequestDto request
     ) {
         return favoriteCityService.updateFavoriteCity(userId, favoriteCityId, request.nomVille())
                 .map(FavoriteCityMapper::toResponseDto)
                 .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+            .orElseThrow(() -> new ResourceNotFoundException("Ville favorite introuvable"));
     }
 
     @DeleteMapping("/{favoriteCityId}")
     public ResponseEntity<Void> delete(
-            @PathVariable Long userId,
-            @PathVariable Long favoriteCityId
+            @PathVariable @Positive Long userId,
+            @PathVariable @Positive Long favoriteCityId
     ) {
         boolean deleted = favoriteCityService.removeFavoriteCity(userId, favoriteCityId);
         if (!deleted) {
-            return ResponseEntity.notFound().build();
+            throw new ResourceNotFoundException("Ville favorite introuvable");
         }
         return ResponseEntity.noContent().build();
     }
