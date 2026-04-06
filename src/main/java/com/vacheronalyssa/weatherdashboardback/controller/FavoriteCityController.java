@@ -1,9 +1,11 @@
 package com.vacheronalyssa.weatherdashboardback.controller;
 
+import com.vacheronalyssa.weatherdashboardback.dto.favorite.FavoriteCityRequestDto;
+import com.vacheronalyssa.weatherdashboardback.dto.favorite.FavoriteCityResponseDto;
 import com.vacheronalyssa.weatherdashboardback.entity.FavoriteCity;
+import com.vacheronalyssa.weatherdashboardback.mapper.FavoriteCityMapper;
 import com.vacheronalyssa.weatherdashboardback.service.FavoriteCityService;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,36 +30,43 @@ public class FavoriteCityController {
     private final FavoriteCityService favoriteCityService;
 
     @GetMapping
-    public ResponseEntity<List<FavoriteCity>> list(@PathVariable Long userId) {
-        return ResponseEntity.ok(favoriteCityService.listFavoriteCities(userId));
+    public ResponseEntity<List<FavoriteCityResponseDto>> list(@PathVariable Long userId) {
+        return ResponseEntity.ok(
+                favoriteCityService.listFavoriteCities(userId)
+                        .stream()
+                        .map(FavoriteCityMapper::toResponseDto)
+                        .toList()
+        );
     }
 
     @GetMapping("/{favoriteCityId}")
-    public ResponseEntity<FavoriteCity> get(
+    public ResponseEntity<FavoriteCityResponseDto> get(
             @PathVariable Long userId,
             @PathVariable Long favoriteCityId
     ) {
         return favoriteCityService.getFavoriteCity(userId, favoriteCityId)
+                .map(FavoriteCityMapper::toResponseDto)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<FavoriteCity> create(
+    public ResponseEntity<FavoriteCityResponseDto> create(
             @PathVariable Long userId,
-            @Valid @RequestBody FavoriteCityRequest request
+            @Valid @RequestBody FavoriteCityRequestDto request
     ) {
         FavoriteCity created = favoriteCityService.addFavoriteCity(userId, request.nomVille());
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        return ResponseEntity.status(HttpStatus.CREATED).body(FavoriteCityMapper.toResponseDto(created));
     }
 
     @PutMapping("/{favoriteCityId}")
-    public ResponseEntity<FavoriteCity> update(
+    public ResponseEntity<FavoriteCityResponseDto> update(
             @PathVariable Long userId,
             @PathVariable Long favoriteCityId,
-            @Valid @RequestBody FavoriteCityRequest request
+            @Valid @RequestBody FavoriteCityRequestDto request
     ) {
         return favoriteCityService.updateFavoriteCity(userId, favoriteCityId, request.nomVille())
+                .map(FavoriteCityMapper::toResponseDto)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -72,8 +81,5 @@ public class FavoriteCityController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.noContent().build();
-    }
-
-    public record FavoriteCityRequest(@NotBlank String nomVille) {
     }
 }

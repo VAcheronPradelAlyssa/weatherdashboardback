@@ -1,5 +1,7 @@
 package com.vacheronalyssa.weatherdashboardback.service.impl;
 
+import com.vacheronalyssa.weatherdashboardback.dto.weather.WeatherDto;
+import com.vacheronalyssa.weatherdashboardback.mapper.OpenWeatherMapper;
 import com.vacheronalyssa.weatherdashboardback.service.OpenWeatherService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,7 +28,7 @@ public class OpenWeatherServiceImpl implements OpenWeatherService {
     private String baseUrl;
 
     @Override
-    public Map<String, Object> getCurrentWeatherByCity(String city) {
+    public WeatherDto getCurrentWeatherByCity(String city) {
         if (!StringUtils.hasText(apiKey)) {
             throw new IllegalStateException("OPENWEATHER_API_KEY est manquante. Configurez la variable d'environnement.");
         }
@@ -48,6 +50,12 @@ public class OpenWeatherServiceImpl implements OpenWeatherService {
             new ParameterizedTypeReference<>() {
             }
         );
-        return response.getBody();
+
+        Map<String, Object> body = response.getBody();
+        if (body == null || body.isEmpty()) {
+            throw new IllegalStateException("Réponse OpenWeatherMap vide.");
+        }
+
+        return OpenWeatherMapper.toWeatherDto(body);
     }
 }

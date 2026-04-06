@@ -1,8 +1,8 @@
 package com.vacheronalyssa.weatherdashboardback.service;
 
-import java.util.Map;
+import com.vacheronalyssa.weatherdashboardback.dto.weather.WeatherDto;
 
 public interface OpenWeatherService {
 
-    Map<String, Object> getCurrentWeatherByCity(String city);
+    WeatherDto getCurrentWeatherByCity(String city);
 }
