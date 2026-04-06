@@ -28,6 +28,15 @@ public class FavoriteCityServiceImpl implements FavoriteCityService {
     }
 
     @Override
+    public Optional<FavoriteCity> updateFavoriteCity(Long userId, Long favoriteCityId, String nomVille) {
+        return favoriteCityRepository.findByIdAndUserId(favoriteCityId, userId)
+                .map(existing -> {
+                    existing.setNomVille(nomVille);
+                    return favoriteCityRepository.save(existing);
+                });
+    }
+
+    @Override
     public boolean removeFavoriteCity(Long userId, Long favoriteCityId) {
         long deleted = favoriteCityRepository.deleteByIdAndUserId(favoriteCityId, userId);
         return deleted > 0;

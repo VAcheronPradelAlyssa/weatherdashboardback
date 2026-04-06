@@ -9,6 +9,8 @@ public interface FavoriteCityService {
 
     FavoriteCity addFavoriteCity(Long userId, String nomVille);
 
+    Optional<FavoriteCity> updateFavoriteCity(Long userId, Long favoriteCityId, String nomVille);
+
     boolean removeFavoriteCity(Long userId, Long favoriteCityId);
 
     List<FavoriteCity> listFavoriteCities(Long userId);
