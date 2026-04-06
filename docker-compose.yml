@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  weatherdashboard:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      OPENWEATHER_API_KEY: ${OPENWEATHER_API_KEY}
+    container_name: weatherdashboard-app
