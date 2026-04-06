@@ -20,6 +20,13 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
 
@@ -27,12 +34,19 @@ import java.util.List;
 @RequestMapping("/api/users/{userId}/favorite-cities")
 @RequiredArgsConstructor
 @Validated
+@Tag(name = "Villes favorites", description = "Gestion des villes favorites de l'utilisateur.")
 public class FavoriteCityController {
 
     private final FavoriteCityService favoriteCityService;
 
     @GetMapping
-    public ResponseEntity<List<FavoriteCityResponseDto>> list(@PathVariable @Positive Long userId) {
+    @Operation(summary = "Lister les villes favorites", description = "Retourne la liste des villes favorites d'un utilisateur.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Liste des villes favorites récupérée avec succès",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = FavoriteCityResponseDto.class)))
+    })
+    public ResponseEntity<List<FavoriteCityResponseDto>> list(
+            @Parameter(description = "ID de l'utilisateur", example = "1") @PathVariable @Positive Long userId) {
         return ResponseEntity.ok(
                 favoriteCityService.listFavoriteCities(userId)
                         .stream()
@@ -42,9 +56,15 @@ public class FavoriteCityController {
     }
 
     @GetMapping("/{favoriteCityId}")
+    @Operation(summary = "Obtenir une ville favorite", description = "Retourne une ville favorite par son identifiant.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Ville favorite trouvée",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = FavoriteCityResponseDto.class))),
+        @ApiResponse(responseCode = "404", description = "Ville favorite introuvable", content = @Content)
+    })
     public ResponseEntity<FavoriteCityResponseDto> get(
-            @PathVariable @Positive Long userId,
-            @PathVariable @Positive Long favoriteCityId
+            @Parameter(description = "ID de l'utilisateur", example = "1") @PathVariable @Positive Long userId,
+            @Parameter(description = "ID de la ville favorite", example = "10") @PathVariable @Positive Long favoriteCityId
     ) {
         return favoriteCityService.getFavoriteCity(userId, favoriteCityId)
                 .map(FavoriteCityMapper::toResponseDto)
@@ -53,8 +73,15 @@ public class FavoriteCityController {
     }
 
     @PostMapping
+    @Operation(summary = "Ajouter une ville favorite", description = "Ajoute une nouvelle ville favorite pour l'utilisateur.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "Ville favorite créée",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = FavoriteCityResponseDto.class)))
+    })
     public ResponseEntity<FavoriteCityResponseDto> create(
-            @PathVariable @Positive Long userId,
+            @Parameter(description = "ID de l'utilisateur", example = "1") @PathVariable @Positive Long userId,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Données de la ville favorite à ajouter", required = true,
+                content = @Content(schema = @Schema(implementation = FavoriteCityRequestDto.class)))
             @Valid @RequestBody FavoriteCityRequestDto request
     ) {
         FavoriteCity created = favoriteCityService.addFavoriteCity(userId, request.nomVille());
@@ -62,9 +89,17 @@ public class FavoriteCityController {
     }
 
     @PutMapping("/{favoriteCityId}")
+    @Operation(summary = "Modifier une ville favorite", description = "Modifie une ville favorite existante.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Ville favorite modifiée",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = FavoriteCityResponseDto.class))),
+        @ApiResponse(responseCode = "404", description = "Ville favorite introuvable", content = @Content)
+    })
     public ResponseEntity<FavoriteCityResponseDto> update(
-            @PathVariable @Positive Long userId,
-            @PathVariable @Positive Long favoriteCityId,
+            @Parameter(description = "ID de l'utilisateur", example = "1") @PathVariable @Positive Long userId,
+            @Parameter(description = "ID de la ville favorite", example = "10") @PathVariable @Positive Long favoriteCityId,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Données de la ville favorite à modifier", required = true,
+                content = @Content(schema = @Schema(implementation = FavoriteCityRequestDto.class)))
             @Valid @RequestBody FavoriteCityRequestDto request
     ) {
         return favoriteCityService.updateFavoriteCity(userId, favoriteCityId, request.nomVille())
@@ -74,9 +109,14 @@ public class FavoriteCityController {
     }
 
     @DeleteMapping("/{favoriteCityId}")
+    @Operation(summary = "Supprimer une ville favorite", description = "Supprime une ville favorite de l'utilisateur.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Ville favorite supprimée"),
+        @ApiResponse(responseCode = "404", description = "Ville favorite introuvable", content = @Content)
+    })
     public ResponseEntity<Void> delete(
-            @PathVariable @Positive Long userId,
-            @PathVariable @Positive Long favoriteCityId
+            @Parameter(description = "ID de l'utilisateur", example = "1") @PathVariable @Positive Long userId,
+            @Parameter(description = "ID de la ville favorite", example = "10") @PathVariable @Positive Long favoriteCityId
     ) {
         boolean deleted = favoriteCityService.removeFavoriteCity(userId, favoriteCityId);
         if (!deleted) {
