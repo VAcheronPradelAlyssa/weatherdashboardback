@@ -70,6 +70,15 @@ Variable requise :
 
 - `OPENWEATHER_API_KEY` : clé API OpenWeather
 
+Pour obtenir cette clé :
+
+1. Crée un compte sur OpenWeather : https://home.openweathermap.org/users/sign_up
+2. Connecte-toi à ton espace OpenWeather.
+3. Va dans la section API keys.
+4. Génère une nouvelle clé API si besoin.
+5. Copie cette clé dans la variable d'environnement `OPENWEATHER_API_KEY`.
+6. Attends éventuellement quelques minutes si la clé vient d'être créée, le temps qu'elle soit active.
+
 Configuration actuelle :
 
 - Fichier applicatif : `src/main/resources/application.yaml`
